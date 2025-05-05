@@ -9,6 +9,8 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -26,10 +28,19 @@ func main() {
 	}
 
 	authService := auth.New(log, storage, storage, cfg.TokenTtl)
-
 	app := grpcapp.New(log, authService, cfg.GRPC.Port)
-	app.MustRun()
 
+	go func() {
+		app.MustRun()
+	}()
+
+	stop := make(chan os.Signal, 2)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+	<-stop
+
+	app.Stop()
+	storage.Close()
+	log.Info("Application gracefully shutting down...")
 }
 
 func setupLogger(env string) *slog.Logger {

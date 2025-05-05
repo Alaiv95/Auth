@@ -57,6 +57,11 @@ func (s *Service) Register(ctx context.Context, email string, password string) (
 	id, err := s.storage.AddUser(ctx, email, passHash)
 	if err != nil {
 		log.Error("failed to add user", sl.Err(err))
+
+		if errors.Is(err, storage.ErrUserExists) {
+			return 0, ErrUserExists
+		}
+
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 

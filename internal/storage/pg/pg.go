@@ -13,6 +13,8 @@ import (
 	"log/slog"
 )
 
+const ConstrainViolationCode = "23505"
+
 type Storage struct {
 	log *slog.Logger
 	db  *pgxpool.Pool
@@ -37,6 +39,13 @@ func New(ctx context.Context, log *slog.Logger, dsn string) (*Storage, error) {
 	}, nil
 }
 
+func (s *Storage) Close() {
+	const op = "pg.Close"
+	s.log.With(slog.String("op", op)).Info("Closing database")
+
+	s.db.Close()
+}
+
 func (s *Storage) AddUser(ctx context.Context, email string, passwordHash []byte) (userID int64, err error) {
 	const op = "pg.AddUser"
 
@@ -45,7 +54,7 @@ func (s *Storage) AddUser(ctx context.Context, email string, passwordHash []byte
 		s.log.Error("Unable to add user", sl.Err(err))
 
 		var pgerr *pgconn.PgError
-		if errors.As(err, &pgerr) && pgerr.Code == "23505" {
+		if errors.As(err, &pgerr) && pgerr.Code == ConstrainViolationCode {
 			return 0, storage.ErrUserExists
 		}
 

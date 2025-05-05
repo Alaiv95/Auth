@@ -50,6 +50,16 @@ func New(log *slog.Logger, authService auth.Auth, port int) *App {
 	}
 }
 
+func (a *App) Stop() {
+	const op = "grpc.stop"
+
+	a.log.With(slog.String("op", op)).Info(
+		"Stopping gRPC server", slog.Int("port", a.port),
+	)
+
+	a.gRPCServer.GracefulStop()
+}
+
 func (a *App) MustRun() {
 	if err := a.run(); err != nil {
 		panic(err)
