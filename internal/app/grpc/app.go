@@ -40,7 +40,6 @@ func New(log *slog.Logger, authService auth.Auth, port int) *App {
 	))
 
 	reflection.Register(server)
-
 	auth.Register(server, authService)
 
 	return &App{

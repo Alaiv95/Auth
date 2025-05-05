@@ -18,22 +18,27 @@ func main() {
 	defer cancel()
 
 	cfg := config.MustLoad()
-
 	log := setupLogger(cfg.Env)
 
+	// инит БД
 	storage, err := pg.New(ctx, log, cfg.Dsn)
 	if err != nil {
 		log.Error("Unable to connect to database", sl.Err(err))
 		os.Exit(1)
 	}
 
+	// инит бизнесовых сервисов
 	authService := auth.New(log, storage, storage, cfg.TokenTtl)
+
+	// настройка grpc сервера
 	app := grpcapp.New(log, authService, cfg.GRPC.Port)
 
+	// запуск grpc сервера
 	go func() {
 		app.MustRun()
 	}()
 
+	// graceful shutdown
 	stop := make(chan os.Signal, 2)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	<-stop

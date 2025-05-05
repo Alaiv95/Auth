@@ -24,6 +24,10 @@ type GRPCConfig struct {
 func MustLoad() *Config {
 	path := configPath()
 
+	return MustLoadByPath(path)
+}
+
+func MustLoadByPath(path string) *Config {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		log.Fatalf("config file %s does not exist", path)
 	}
