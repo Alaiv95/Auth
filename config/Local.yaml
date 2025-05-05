@@ -1,5 +1,5 @@
 env: "local"
-dsn: "user=postgres password=postgres dbname=auth sslmode=disable"
+dsn: "user=postgres password=postgres dbname=auth port=5434 sslmode=disable"
 migrations_path: ""
 token_ttl: 1h
 grpc:

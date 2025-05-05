@@ -11,8 +11,8 @@ import (
 )
 
 type serverAPI struct {
-	authv1.UnimplementedAuthServer
 	auth Auth
+	authv1.UnimplementedAuthServer
 }
 
 type Auth interface {

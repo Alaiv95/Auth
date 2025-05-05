@@ -40,7 +40,7 @@ func New(ctx context.Context, log *slog.Logger, dsn string) (*Storage, error) {
 func (s *Storage) AddUser(ctx context.Context, email string, passwordHash []byte) (userID int64, err error) {
 	const op = "pg.AddUser"
 
-	c, err := s.db.Exec(ctx, "INSERT INTO users(email, passwordHash) VALUES ($1, $2)", email, string(passwordHash))
+	c, err := s.db.Exec(ctx, "INSERT INTO users(email, pass_hash) VALUES ($1, $2)", email, string(passwordHash))
 	if err != nil {
 		s.log.Error("Unable to add user", sl.Err(err))
 
@@ -60,7 +60,7 @@ func (s *Storage) AddUser(ctx context.Context, email string, passwordHash []byte
 func (s *Storage) User(ctx context.Context, email string) (user models.User, err error) {
 	const op = "pg.User"
 
-	err = s.db.QueryRow(ctx, "SELECT id, email, passwordHash FROM users WHERE email = $1", email).Scan(&user.Id, &user.Email, &user.PasswordHash)
+	err = s.db.QueryRow(ctx, "SELECT id, email, pass_hash FROM users WHERE email = $1", email).Scan(&user.Id, &user.Email, &user.PasswordHash)
 	if err != nil {
 		s.log.Error("Unable to get user", sl.Err(err))
 

@@ -1,12 +1,12 @@
 package main
 
 import (
+	grpcapp "Auth/internal/app/grpc"
 	"Auth/internal/config"
 	"Auth/internal/lib/logger/sl"
 	"Auth/internal/services/auth"
 	"Auth/internal/storage/pg"
 	"context"
-	"google.golang.org/grpc"
 	"log/slog"
 	"os"
 )
@@ -14,20 +14,22 @@ import (
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	// конфиг
+
 	cfg := config.MustLoad()
-	// логгер
+
 	log := setupLogger(cfg.Env)
-	// бд
+
 	storage, err := pg.New(ctx, log, cfg.Dsn)
 	if err != nil {
 		log.Error("Unable to connect to database", sl.Err(err))
 		os.Exit(1)
 	}
-	// app
-	app := auth.New(log, storage, storage, cfg.TokenTtl)
-	// запуск grpc
-	grpc.NewServer()
+
+	authService := auth.New(log, storage, storage, cfg.TokenTtl)
+
+	app := grpcapp.New(log, authService, cfg.GRPC.Port)
+	app.MustRun()
+
 }
 
 func setupLogger(env string) *slog.Logger {
