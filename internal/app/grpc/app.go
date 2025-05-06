@@ -4,6 +4,7 @@ import (
 	"Auth/internal/grpc/auth"
 	"context"
 	"fmt"
+	authv1 "github.com/Alaiv95/Protos/gen/go/auth"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	"google.golang.org/grpc"
@@ -84,6 +85,21 @@ func (a *App) run() error {
 
 func interceptorLogger(l *slog.Logger) logging.Logger {
 	return logging.LoggerFunc(func(ctx context.Context, level logging.Level, msg string, fields ...any) {
+		for i, field := range fields {
+			switch v := field.(type) {
+			case *authv1.LoginRequest:
+				fields[i] = struct {
+					Email string
+					App   int32
+				}{
+					v.Email,
+					v.AppId,
+				}
+			case *authv1.RegisterRequest:
+				fields[i] = v.Email
+			}
+		}
+
 		l.Log(ctx, slog.Level(level), msg, fields...)
 	})
 }
